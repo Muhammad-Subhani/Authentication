@@ -84,9 +84,9 @@ async function authorization_handler(req, res) {
   const decoded = Give_user_info(data_from_header);
 
   // if token exists then following thing gets executed 
-
+  console.log(decoded)
   if (decoded) {
-    res.json({ status: `user ${decoded.username} has been verified with the token : \n ${data_from_header} ` });
+    res.json({ status: `user ${decoded.username} has been verified with the token : \n ${data_from_header} and the result is ${decoded} ` });
   } else if (!decoded) {
     res.json({ status: `user not found!!` })
   }
@@ -127,7 +127,7 @@ async function create_new_token(req, res) {
   await resfromDB.save();
   // now using the data from the cookie to create another access key 
 
-  const new_access_token = get_access_token(decoded_data);
+  const new_access_token = get_access_token({ ...decoded_data, session_id: resfromDB._id });
 
   res.cookie("RefreshToken", new_refresh_token, {
     httpOnly: true,
@@ -139,6 +139,7 @@ async function create_new_token(req, res) {
   //sending the access key 
 
   res.status(200).json({ accesstoken: new_access_token });
+  console.log(Give_user_info(new_access_token));
 
 }
 
@@ -160,7 +161,7 @@ async function logout_function(req, res) {
 async function logout_from_all(req, res) {
   const refresh_token = req.cookies.RefreshToken;
   const decoded = Give_user_info(refresh_token);
-  await session_model.findOneAndUpdate(decoded.id, {
+  await session_model.updateMany(decoded.id, {
     revoked: false
   }, {
     revoked: true
@@ -171,34 +172,34 @@ async function logout_from_all(req, res) {
 
 async function login(req, res) {
 
-  const { username, email } = req.body;
-
-  const incoming_data = await userdata.findOne({ username: username, email: email });
-  console.log(incoming_data)
-
-  if (incoming_data) {
-    // getting the refresh token 
-    const refresh_token = getCookie(incoming_data);
-    const hashed_cookie = crypto.createHash("sha512").update(refresh_token).digest("hex");
-
-    const my_session = await session_model.findOne({ user: incoming_data._id });
-    my_session.RefreshTokenHash = hashed_cookie;
-    my_session.revoked = false;
-    await my_session.save();
-
-    const new_access_token = get_access_token(incoming_data);
-
-    res.cookie("RefreshToken", refresh_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: true,
-      maxAge: 15 * 24 * 60 * 60 * 1000
-    });
-    res.status(200).json({ status: `Successfully logged IN the access token is ${new_access_token}` })
+  const { email, password } = req.body;
+  const user = await userdata.findOne({ email: email }).lean();
+  if (!user) {
+    return res.status(401).json({ status: "No Such User !" });
   }
-  else {
-    res.json({ status: "TRY AGAIN" });
+  const hashed_passwrod = crypto.createHash("sha512").update(password).digest("hex");
+  if (user.password != hashed_passwrod) {
+    return res.status(200).json({ status: "Invalid password" });
   }
+  const refresh_token = getCookie(user);
+  const hashed_cookie = crypto.createHash("sha512").update(refresh_token).digest("hex");
+  const session_token = await session_model.create({
+    user: user._id,
+    ip: req.ip,
+    RefreshTokenHash: hashed_cookie,
+    userAgent: req.headers["user-agent"],
+    revoked: false
+  });
+  console.log({ ...user });
+  const new_access_token = get_access_token({ ...user, session_id: session_token._id });
+  res.cookie("RefreshToken", refresh_token, {
+    secure: true,
+    sameSite: true,
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  })
+  res.status(200).json({ status: `logged IN succesfully your access token is ${new_access_token}` })
+
 }
 // exporting all the functionalities
 module.exports = {
