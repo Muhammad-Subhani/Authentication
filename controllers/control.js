@@ -3,6 +3,9 @@ const crypto = require("crypto");
 const { get_access_token, Give_user_info, getCookie } = require("../services/service.js");
 const strict = require("assert/strict");
 const session_model = require("../models/session.model.js")
+const sendEmail = require("../services/email.js")
+const otp_model = require("../models/otp.js")
+const { generate_OTp, generateEmailTemplate } = require("../utils/otp.js")
 // giving functionalities 
 // first oen to handle incoming data 
 
@@ -32,8 +35,15 @@ async function handleinputs(req, res) { //getting the info from the request s bo
       email: email,
       password: hashed_password
     });
-
-
+    const get_otp = generate_OTp();
+    const hash_OTP = crypto.createHash("sha512").update(get_otp).digest("hex");
+    const html = generateEmailTemplate(get_otp)
+    const opt_data = await otp_model.create({
+      email: email,
+      user: checkForUser._id,
+      OTP: hash_OTP,
+    });
+    await sendEmail(email, "OTP Verification", `your otp is ${get_otp}`, html);
     // getting the refresh token 
 
     const Refresh_token_Cookie = getCookie(data);

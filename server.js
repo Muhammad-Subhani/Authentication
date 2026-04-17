@@ -7,17 +7,29 @@ const { MONGO_CLIENT_EVENTS } = require("mongodb");
 dotenv.config();
 // check is MONGO_URI exists 
 // process.env is a global object storing all of your global variables . so just extracting it 
-if(!process.env.MONGO_URI) {
-    throw new Error("there exists no MONGO_URI")
+if (!process.env.MONGO_URI) {
+  throw new Error("there exists no MONGO_URI")
 }
 // checking if the JWT exists 
-if(!process.env.JWT_SECRET){
-    throw new Error("You dont have the JWT token !!");
+if (!process.env.JWT_SECRET) {
+  throw new Error("You dont have the JWT token !!");
+}
+if (!process.env.GOOGLE_CLIENT_ID) {
+  throw new Error("You dont have the Google Client ID!!");
+}
+if (!process.env.CLIENT_SECRET) {
+  throw new Error("You dont have the Client Secret!!");
+}
+if (!process.env.GOOGLE_REFRESH_TOKEN) {
+  throw new Error("You dont have the Google Refresh Token  !!");
+}
+if (!process.env.GOOGLE_USER) {
+  throw new Error("You dont have the Google User  !!");
 }
 // exporting the object for scalability 
-module.exports= {
-    MONGO_URI : process.env.MONGO_URI,
-    JWT_SECRET : process.env.JWT_SECRET,  
+module.exports = {
+  MONGO_URI: process.env.MONGO_URI,
+  JWT_SECRET: process.env.JWT_SECRET,
 }
 
 
