@@ -30,9 +30,19 @@ function getCookie(obj) {
     expiresIn: "7d"
   });
 }
+
+function getTempCookie(obj) {
+  return JWT.sign({
+    _id: obj._id,
+    email: obj.email
+  }, JWT_SECRET, {
+    expiresIn: "10m"
+  });
+}
 //exporting the functions 
 module.exports = {
   get_access_token,
   Give_user_info,
   getCookie,
+  getTempCookie
 }

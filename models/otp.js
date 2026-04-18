@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { type } = require("node:os");
-const Otp_Schema = mongoose.Schema({
+const Otp_Schema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, "Needed an email"]

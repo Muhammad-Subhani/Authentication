@@ -25,5 +25,13 @@
     "@types/mongoose": "^5.11.96",
     "@types/morgan": "^1.9.10",
     "@types/node": "^25.6.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Muhammad-Subhani/Authentication.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Muhammad-Subhani/Authentication/issues"
+  },
+  "homepage": "https://github.com/Muhammad-Subhani/Authentication#readme"
 }
